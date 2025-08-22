@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: inventory-service
+app:
+  temporal:
+    address: ${TEMPORAL_ADDRESS:localhost:7233}
+    namespace: default
+    taskQueue: order-task-queue

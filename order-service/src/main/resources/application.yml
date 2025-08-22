@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: order-service
+
+app:
+  temporal:
+    address: ${TEMPORAL_ADDRESS:localhost:7233}
+    namespace: default
+    taskQueue: order-task-queue
