@@ -30,11 +30,11 @@ public class OrderWorkflowImpl implements OrderWorkflow {
             act.updateOrderStatus(in.orderId(), Order.Status.PENDING);
             UUID reservationId = act.reserveInventory(in.orderId(), sagaId, in.request().items());
             saga.addCompensation(() -> act.releaseInventoryIfAny(in.orderId(), reservationId));
-            act.updateOrderStatus(in.orderId(), Order.Status.ITEMS_PROCESSED);
+            act.updateOrderStatus(in.orderId(), Order.Status.INVENTORY_RESERVED);
 
             UUID authId = act.authorizePayment(in.orderId(), sagaId, in.total());
             saga.addCompensation(() -> act.voidPaymentIfAny(in.orderId(), authId));
-            act.updateOrderStatus(in.orderId(), Order.Status.PAYMENT_SUCCESSFUL);
+            act.updateOrderStatus(in.orderId(), Order.Status.PAYMENT_AUTHORIZED);
 
             act.updateOrderStatus(in.orderId(), Order.Status.COMPLETED);
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class OrderWorkflowImpl implements OrderWorkflow {
             Throwable cause = af.getCause();
             if (cause instanceof io.temporal.failure.ApplicationFailure app) {
                 return switch (app.getType()) {
-                    case "InventoryNotSufficient" -> Order.Status.PROCESSING_FAILED;
+                    case "InventoryNotSufficient" -> Order.Status.INVENTORY_FAILED;
                     case "PaymentRefused" -> Order.Status.PAYMENT_FAILED;
                     default -> Order.Status.FAILED_UNKNOWN;
                 };

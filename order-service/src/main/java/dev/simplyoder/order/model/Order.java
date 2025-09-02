@@ -64,10 +64,10 @@ public class Order {
     public static enum Status {
         OPEN,
         PENDING,
-        ITEMS_PROCESSED,
-        PAYMENT_SUCCESSFUL,
+        INVENTORY_RESERVED,
+        PAYMENT_AUTHORIZED,
         PAYMENT_FAILED,
-        PROCESSING_FAILED,
+        INVENTORY_FAILED,
         FAILED_UNKNOWN,
         COMPLETED
     }
