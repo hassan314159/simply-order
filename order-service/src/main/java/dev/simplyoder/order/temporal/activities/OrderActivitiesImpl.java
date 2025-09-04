@@ -76,7 +76,7 @@ public class OrderActivitiesImpl implements OrderActivities {
         if (res.getStatusCode().isError()) throw new RuntimeException("Payment failed: " + res.getStatusCode());
         UUID authId = Objects.requireNonNull(res.getBody()).authId();
         if (res.getStatusCode().value() == 209) {
-            throw ApplicationFailure.newNonRetryableFailure("" , "InventoryNotSufficient");
+            throw ApplicationFailure.newNonRetryableFailure("" , "PaymentRefused");
         }
         return authId;
     }

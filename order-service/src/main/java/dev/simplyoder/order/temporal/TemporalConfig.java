@@ -32,11 +32,6 @@ public class TemporalConfig {
     }
 
     @Bean
-    RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
-
-    @Bean
     Worker worker(WorkerFactory factory, OrderActivities activities) {
         Worker w = factory.newWorker("order-task-queue");
         w.registerWorkflowImplementationTypes(OrderWorkflowImpl.class);
