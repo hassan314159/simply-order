@@ -27,15 +27,24 @@ public class OrderWorkflowImpl implements OrderWorkflow {
                 .setContinueWithError(true) // collect/continue if a compensation fails
                 .build());
         try {
+            // 1) Update status of Order to PENDING
             act.updateOrderStatus(in.orderId(), Order.Status.PENDING);
+
+            // 2) reserve the inventory (calling inventory service)
             UUID reservationId = act.reserveInventory(in.orderId(), sagaId, in.request().items());
             saga.addCompensation(() -> act.releaseInventoryIfAny(in.orderId(), reservationId));
+
+            // 3) Update status of Order to INVENTORY_RESERVED
             act.updateOrderStatus(in.orderId(), Order.Status.INVENTORY_RESERVED);
 
+            // 4) authorize the payment (calling payment service)
             UUID authId = act.authorizePayment(in.orderId(), sagaId, in.total());
             saga.addCompensation(() -> act.voidPaymentIfAny(in.orderId(), authId));
+
+            // 5) Update status of Order to PAYMENT_AUTHORIZED
             act.updateOrderStatus(in.orderId(), Order.Status.PAYMENT_AUTHORIZED);
 
+            // 6) Complete our saga by updating Order Status to COMPLETED
             act.updateOrderStatus(in.orderId(), Order.Status.COMPLETED);
         } catch (Exception e) {
             try {
