@@ -1,4 +1,4 @@
-#Simply Order Tutorials
+# Simply Order Tutorials
 This is a series of tutorials that walk through designing and implementing a distributed Order System for a hypothetical company called Simply Order.
 The highlight of this work is not just coding, but exploring real-world microservice challenges such as:
 - Distributed transactions
