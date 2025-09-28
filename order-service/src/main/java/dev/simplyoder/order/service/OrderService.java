@@ -34,6 +34,7 @@ public class OrderService {
             items.add(new Order.Item(it.sku(), it.qty(), it.price()));
         }
         Order order = new Order(orderId, request.customerId(), Order.Status.OPEN, total, items);
+        // simple map acts as in in-memory store
         orders.put(orderId, order);
 
         // start oder creation saga ** WHEN INTRODUCE DB WILL BE UPDATED TO BE STARTED BY OUTBOX RELAY

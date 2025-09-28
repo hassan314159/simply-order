@@ -15,8 +15,8 @@ public class OrderWorkflowImpl implements OrderWorkflow {
     private final OrderActivities act;
 
     public OrderWorkflowImpl() {
-        var retry = RetryOptions.newBuilder().setMaximumAttempts(5).setBackoffCoefficient(2.0).setInitialInterval(Duration.ofSeconds(1)).build();
-        var opts = ActivityOptions.newBuilder().setStartToCloseTimeout(Duration.ofMinutes(2)).setRetryOptions(retry).build();
+        var retry = RetryOptions.newBuilder().setMaximumAttempts(5).setBackoffCoefficient(2.0).setInitialInterval(Duration.ofSeconds(200)).build();
+        var opts = ActivityOptions.newBuilder().setStartToCloseTimeout(Duration.ofMinutes(10)).setRetryOptions(retry).build();
         this.act = Workflow.newActivityStub(OrderActivities.class, opts);
     }
 
