@@ -1,9 +1,8 @@
 package dev.simplyoder.order.temporal.activities;
 
-
-import dev.simplyoder.order.controller.dto.CreateOrderRequest;
-import dev.simplyoder.order.model.Order;
+import dev.simplyoder.order.model.OrderStatus;
 import dev.simplyoder.order.service.OrderService;
+import dev.simplyoder.order.temporal.model.OrderPayload;
 import io.temporal.failure.ApplicationFailure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -37,22 +36,19 @@ public class OrderActivitiesImpl implements OrderActivities {
     }
 
     @Override
-    public void updateOrderStatus(UUID orderId, Order.Status status) {
-        orderService.orders.computeIfPresent(orderId, (key, value) -> {
-            value.setStatus(status);
-            return value;
-        });
+    public void updateOrderStatus(UUID orderId, OrderStatus status) {
+        orderService.updateOrderStatus(orderId, status);
     }
 
     @Override
-    public UUID reserveInventory(UUID orderId, String sagaId, List<CreateOrderRequest.Item> items) {
+    public UUID reserveInventory(UUID orderId, String sagaId, List<OrderPayload.Item> items) {
         record Item(String sku, int qty) {
         }
         record Req(UUID orderId, List<Item> items) {
         }
         record Res(UUID reservationId) {
         }
-        var req = new Req(orderId, items.stream().map(i -> new Item(i.sku(), i.qty())).toList());
+        var req = new Req(orderId, items.stream().map(i -> new Item(i.sku(), i.quantity())).toList());
         var headers = new HttpHeaders();
         headers.add("Idempotency-Key", sagaId + ":reserve");
         var res = http.exchange(URI.create(inventoryBase + "/inventory/reservations"), HttpMethod.POST, new HttpEntity<>(req, headers), Res.class);

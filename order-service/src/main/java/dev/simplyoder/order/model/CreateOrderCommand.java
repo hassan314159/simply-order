@@ -1,74 +1,63 @@
 package dev.simplyoder.order.model;
 
+import dev.simplyoder.order.controller.dto.CreateOrderRequest;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-public class Order {
+public class CreateOrderCommand {
 
     private UUID id;
     private UUID customerId;
-    private Status status;
-    private BigDecimal total;
     private List<Item> items;
 
     // no-args constructor
-    public Order() { }
+    public CreateOrderCommand() { }
 
     // all-args constructor (same component order as the record)
-    public Order(UUID id, UUID customerId, Status status, BigDecimal total, List<Item> items) {
+    public CreateOrderCommand(UUID id, UUID customerId, List<Item> items) {
         this.id = id;
         this.customerId = customerId;
-        this.status = status;
-        this.total = total;
         this.items = items;
     }
 
     // getters
     public UUID getId() { return id; }
     public UUID getCustomerId() { return customerId; }
-    public Status getStatus() { return status; }
-    public BigDecimal getTotal() { return total; }
     public List<Item> getItems() { return items; }
 
     // setters
     public void setId(UUID id) { this.id = id; }
     public void setCustomerId(UUID customerId) { this.customerId = customerId; }
-    public void setStatus(Status status) { this.status = status; }
-    public void setTotal(BigDecimal total) { this.total = total; }
     public void setItems(List<Item> items) { this.items = items; }
 
-    // nested types kept as in the record
     public static class Item {
         private String sku;
-        private int qty;
+        private int quantity;
         private BigDecimal price;
 
         public Item() { }
 
-        public Item(String sku, int qty, BigDecimal price) {
+        public Item(String sku, int quantity, BigDecimal price) {
             this.sku = sku;
-            this.qty = qty;
+            this.quantity = quantity;
             this.price = price;
         }
 
         public String getSku() { return sku; }
-        public int getQty() { return qty; }
+        public int getQuantity() { return quantity; }
         public BigDecimal getPrice() { return price; }
 
         public void setSku(String sku) { this.sku = sku; }
-        public void setQty(int qty) { this.qty = qty; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
         public void setPrice(BigDecimal price) { this.price = price; }
     }
 
-    public static enum Status {
-        OPEN,
-        PENDING,
-        INVENTORY_RESERVED,
-        PAYMENT_AUTHORIZED,
-        PAYMENT_FAILED,
-        INVENTORY_FAILED,
-        FAILED_UNKNOWN,
-        COMPLETED
+    public static CreateOrderCommand from(UUID orderId, CreateOrderRequest request){
+        List<Item> items = request.items()
+                .stream()
+                .map(i -> new Item(i.sku(), i.qty(), i.price())).toList();
+        return new CreateOrderCommand(orderId, request.customerId(), items);
     }
 }

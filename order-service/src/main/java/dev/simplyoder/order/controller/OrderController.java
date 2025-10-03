@@ -1,5 +1,6 @@
 package dev.simplyoder.order.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.simplyoder.order.controller.dto.CreateOrderRequest;
 import dev.simplyoder.order.controller.dto.CreateOrderResponse;
 import dev.simplyoder.order.service.OrderService;
@@ -20,7 +21,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateOrderResponse> create(@RequestBody CreateOrderRequest req) {
+    public ResponseEntity<CreateOrderResponse> create(@RequestBody CreateOrderRequest req) throws JsonProcessingException {
         UUID id = orderService.createOrder(req);
         return ResponseEntity.status(201).body(new CreateOrderResponse(id, orderService.findOrderById(id).getStatus().name()));
     }

@@ -1,55 +1,53 @@
 package dev.simplyoder.order.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.simplyoder.order.controller.dto.CreateOrderRequest;
-import dev.simplyoder.order.model.Order;
-import dev.simplyoder.order.temporal.workflow.OrderWorkflow;
-import io.temporal.client.WorkflowClient;
-import io.temporal.client.WorkflowOptions;
+import dev.simplyoder.order.infra.outbox.OutboxEntity;
+import dev.simplyoder.order.infra.outbox.OutboxRepository;
+import dev.simplyoder.order.model.CreateOrderCommand;
+import dev.simplyoder.order.model.OrderStatus;
+import dev.simplyoder.order.persistence.OrderEntity;
+import dev.simplyoder.order.persistence.OrderRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class OrderService {
 
-    public Map<UUID, Order> orders = new ConcurrentHashMap<>();
-    private final WorkflowClient client;
+    private final OrderRepository orderRepo;
+    private final OutboxRepository outboxRepo;
+    private final ObjectMapper objectMapper;
 
 
-    public OrderService(WorkflowClient client){
-        this.client = client;
+    public OrderService(OrderRepository orderRepo, OutboxRepository outboxRepo, ObjectMapper objectMapper){
+        this.orderRepo = orderRepo;
+        this.outboxRepo = outboxRepo;
+        this.objectMapper = objectMapper;
     }
 
-    public UUID createOrder(CreateOrderRequest request){
+    @Transactional
+    public UUID createOrder(CreateOrderRequest request) throws JsonProcessingException {
+
         UUID orderId = UUID.randomUUID();
-        BigDecimal total = BigDecimal.ZERO;
-        List<Order.Item> items = new LinkedList<>();
-        for (var it : request.items()) {
-            total = total.add(it.price().multiply(BigDecimal.valueOf(it.qty())));
-            items.add(new Order.Item(it.sku(), it.qty(), it.price()));
-        }
-        Order order = new Order(orderId, request.customerId(), Order.Status.OPEN, total, items);
-        orders.put(orderId, order);
+        CreateOrderCommand cmd = CreateOrderCommand.from(orderId, request);
+        OrderEntity order = OrderEntity.create(cmd);
+        orderRepo.save(order);
 
-        // start oder creation saga ** WHEN INTRODUCE DB WILL BE UPDATED TO BE STARTED BY OUTBOX RELAY
-        OrderWorkflow wf = client.newWorkflowStub(
-                OrderWorkflow.class,
-                WorkflowOptions.newBuilder()
-                        .setTaskQueue("order-task-queue")
-                        .setWorkflowId("order-" + orderId) // This is saga id
-                        .build());
+        String payload = objectMapper.writeValueAsString(order);
+        outboxRepo.save(OutboxEntity.pending("OrderCreated", orderId, payload));
 
-        WorkflowClient.start(wf::placeOrder, OrderWorkflow.Input.from(order, request));
         return orderId;
 
     }
 
-    public Order findOrderById(UUID orderId){
-        return orders.get(orderId);
+    public void updateOrderStatus(UUID orderId, OrderStatus status){
+        orderRepo.findById(orderId).ifPresent(o -> o.setStatus(status));
+    }
+
+    public OrderEntity findOrderById(UUID orderId){
+        return orderRepo.findById(orderId).orElseThrow();
     }
 }

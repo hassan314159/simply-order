@@ -1,5 +1,6 @@
 package dev.simplyoder.order.persistence;
 
+import dev.simplyoder.order.model.CreateOrderCommand;
 import dev.simplyoder.order.model.OrderStatus;
 import jakarta.persistence.*;
 
@@ -7,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -14,7 +16,6 @@ import java.util.UUID;
 public class OrderEntity{
 
     @Id
-    @GeneratedValue
     private UUID id;
 
     private UUID customerId;
@@ -34,6 +35,22 @@ public class OrderEntity{
 
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    private OrderEntity(UUID id, UUID customerId) {
+        this.id = Objects.requireNonNull(id);
+        this.customerId = Objects.requireNonNull(customerId);
+    }
+
+    public static OrderEntity create(CreateOrderCommand cmd){
+        OrderEntity order = new OrderEntity(cmd.getId(), cmd.getCustomerId());
+        order.setStatus(OrderStatus.OPEN);
+        cmd.getItems().stream()
+                .map(orderItem -> new OrderItemEntity(order, orderItem.getSku(), orderItem.getQuantity(),
+                        orderItem.getPrice()))
+                .forEach(order::addItem);
+
+        return order;
+    }
 
     public void addItem(OrderItemEntity item) {
         item.setOrder(this);
@@ -64,5 +81,61 @@ public class OrderEntity{
     public void preUpdate() {
         this.updatedAt = OffsetDateTime.now();
         recalcTotal();
+    }
+
+    public UUID getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(UUID customerId) {
+        this.customerId = customerId;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public List<OrderItemEntity> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemEntity> items) {
+        this.items = items;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 }

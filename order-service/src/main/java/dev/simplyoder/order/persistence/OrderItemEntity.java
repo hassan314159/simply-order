@@ -26,6 +26,13 @@ public class OrderItemEntity {
     @Column(name = "price", nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 
+    public OrderItemEntity(OrderEntity order, String sku, int quantity, BigDecimal price) {
+        this.order = order;
+        this.sku = sku;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
     public BigDecimal getPrice() {
         return price;
     }

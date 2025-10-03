@@ -1,8 +1,7 @@
 package dev.simplyoder.order.temporal.activities;
 
-
-import dev.simplyoder.order.controller.dto.CreateOrderRequest;
-import dev.simplyoder.order.model.Order;
+import dev.simplyoder.order.model.OrderStatus;
+import dev.simplyoder.order.temporal.model.OrderPayload;
 import io.temporal.activity.ActivityInterface;
 
 import java.math.BigDecimal;
@@ -11,9 +10,9 @@ import java.util.UUID;
 
 @ActivityInterface
 public interface OrderActivities {
-    void updateOrderStatus(UUID orderId, Order.Status status);
+    void updateOrderStatus(UUID orderId, OrderStatus status);
 
-    UUID reserveInventory(UUID orderId, String sagaId, List<CreateOrderRequest.Item> items);
+    UUID reserveInventory(UUID orderId, String sagaId, List<OrderPayload.Item> items);
 
     UUID authorizePayment(UUID orderId, String sagaId, BigDecimal total);
 
