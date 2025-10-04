@@ -10,7 +10,9 @@ import dev.simplyoder.order.model.OrderStatus;
 import dev.simplyoder.order.persistence.OrderEntity;
 import dev.simplyoder.order.persistence.OrderRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -44,10 +46,15 @@ public class OrderService {
     }
 
     public void updateOrderStatus(UUID orderId, OrderStatus status){
-        orderRepo.findById(orderId).ifPresent(o -> o.setStatus(status));
+        orderRepo.findById(orderId).ifPresent(o -> {
+            o.setStatus(status);
+            orderRepo.save(o);
+        });
     }
 
     public OrderEntity findOrderById(UUID orderId){
-        return orderRepo.findById(orderId).orElseThrow();
+        return orderRepo.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Order %s not found".formatted(orderId)));
     }
 }

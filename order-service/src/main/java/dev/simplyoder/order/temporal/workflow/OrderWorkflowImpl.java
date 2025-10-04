@@ -17,11 +17,11 @@ public class OrderWorkflowImpl implements OrderWorkflow {
     private final OrderActivities act;
     private final ObjectMapper objectMapper;
 
-    public OrderWorkflowImpl(ObjectMapper objectMapper) {
+    public OrderWorkflowImpl() {
         var retry = RetryOptions.newBuilder().setMaximumAttempts(5).setBackoffCoefficient(2.0).setInitialInterval(Duration.ofSeconds(1)).build();
         var opts = ActivityOptions.newBuilder().setStartToCloseTimeout(Duration.ofMinutes(2)).setRetryOptions(retry).build();
         this.act = Workflow.newActivityStub(OrderActivities.class, opts);
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override

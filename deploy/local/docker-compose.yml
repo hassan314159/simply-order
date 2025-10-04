@@ -34,7 +34,6 @@ services:
     image: temporalio/ui:${TEMPORAL_UI_VERSION}  # or a pinned version
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      # Optional: allow your local web app to call the UI APIs
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
     ports:
       - "8080:8080"
@@ -45,12 +44,23 @@ services:
     build: ../../order-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - DB_ADDRESS=postgres-order:5432
       - TEMPORAL_ADDRESS=temporal:7233
       - INVENTORY_BASE=http://inventory-service:8080
       - PAYMENT_BASE=http://payment-service:8080
+      - PORT= 8080
     depends_on:
       - temporal
+      - postgres-order
     ports: [ "8081:8080" ]
+
+  postgres-order:
+    image: ${POSTGRES_IMG}
+    environment:
+      POSTGRES_USER: order
+      POSTGRES_PASSWORD: order
+      POSTGRES_DB: orderdb
+    ports: [ "5433:5432" ]
 
   inventory-service:
     build: ../../inventory-service

@@ -1,5 +1,6 @@
 package dev.simplyoder.order.persistence;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import dev.simplyoder.order.model.CreateOrderCommand;
 import dev.simplyoder.order.model.OrderStatus;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class OrderEntity{
     private BigDecimal total = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderItemEntity> items = new ArrayList<OrderItemEntity>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -41,6 +43,9 @@ public class OrderEntity{
         this.customerId = Objects.requireNonNull(customerId);
     }
 
+    public OrderEntity() {
+    }
+
     public static OrderEntity create(CreateOrderCommand cmd){
         OrderEntity order = new OrderEntity(cmd.getId(), cmd.getCustomerId());
         order.setStatus(OrderStatus.OPEN);
@@ -48,7 +53,6 @@ public class OrderEntity{
                 .map(orderItem -> new OrderItemEntity(order, orderItem.getSku(), orderItem.getQuantity(),
                         orderItem.getPrice()))
                 .forEach(order::addItem);
-
         return order;
     }
 

@@ -1,5 +1,6 @@
 package dev.simplyoder.order.persistence;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ public class OrderItemEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false, foreignKey = @ForeignKey(name = "fk_item_order"))
+    @JsonBackReference
     private OrderEntity order;
 
     @Column(name = "sku", nullable = false, length = 100)
@@ -31,6 +33,9 @@ public class OrderItemEntity {
         this.sku = sku;
         this.quantity = quantity;
         this.price = price;
+    }
+
+    public OrderItemEntity() {
     }
 
     public BigDecimal getPrice() {
