@@ -66,13 +66,27 @@ services:
     build: ../../inventory-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - DB_ADDRESS=postgres-inventory:5432
     ports: [ "8082:8080" ]
+
+  postgres-inventory:
+    image: ${POSTGRES_IMG}
+    environment:
+      POSTGRES_USER: inventory
+      POSTGRES_PASSWORD: inventory
+      POSTGRES_DB: inventorydb
+    ports: [ "5434:5432" ]
 
   payment-service:
     build: ../../payment-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     ports: [ "8083:8080" ]
+
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    ports: [ "8084:8080" ]
 
 volumes:
   pgdata: {}
