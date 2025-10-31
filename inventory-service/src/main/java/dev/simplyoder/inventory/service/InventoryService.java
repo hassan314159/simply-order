@@ -1,37 +1,69 @@
 package dev.simplyoder.inventory.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.simplyoder.inventory.controller.dto.ReservationsRequest;
 import dev.simplyoder.inventory.controller.dto.ReservationsResponse;
 import dev.simplyoder.inventory.controller.exception.InsufficientStockException;
-import dev.simplyoder.inventory.persistence.InventoryItemRepository;
-import dev.simplyoder.inventory.persistence.ReservationHoldEntity;
-import dev.simplyoder.inventory.persistence.ReservationHoldRepository;
+import dev.simplyoder.inventory.controller.utils.ReservationIds;
+import dev.simplyoder.inventory.persistence.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
 public class InventoryService {
 
+    private static final String OP_RESERVE = "RESERVE";
+
     private final InventoryItemRepository inventoryItemRepository;
     private final ReservationHoldRepository reservationHoldRepository;
+    private final IdempotencyRepository idempotencyRepository;
+    private final ObjectMapper objectMapper;
 
-    public InventoryService(InventoryItemRepository inventoryItemRepository, ReservationHoldRepository reservationHoldRepository) {
+    public InventoryService(InventoryItemRepository inventoryItemRepository, ReservationHoldRepository reservationHoldRepository,
+                            IdempotencyRepository idempotencyRepository, ObjectMapper objectMapper) {
         this.inventoryItemRepository = inventoryItemRepository;
         this.reservationHoldRepository = reservationHoldRepository;
+        this.idempotencyRepository = idempotencyRepository;
+        this.objectMapper = objectMapper;
     }
 
-    @Transactional
     public ReservationsResponse reserve(ReservationsRequest req, String idempotencyKey) {
 
-        // check idempotency
-        Optional<ReservationHoldEntity> reservation = reservationHoldRepository.findByIdempotencyKey(idempotencyKey);
-        if(reservation.isPresent()){
-            return new ReservationsResponse(reservation.get().getReservationId());
+        final UUID rid = ReservationIds.fromKey(idempotencyKey, OP_RESERVE);
+
+        Optional<IdempotencyEntity> idempotencyRow = idempotencyRepository.findById(rid);
+
+        // handle idempotency
+        if(idempotencyRow.isPresent()){
+            return tryDeserialize(idempotencyRow.get())
+                    .orElseGet(() -> new ReservationsResponse(rid));
         }
 
-        UUID rid =  UUID.randomUUID();
+        // Safe check: if domain already created reservation (previous crash)
+        if (!reservationHoldRepository.findByReservationId(rid).isEmpty()) {
+            ReservationsResponse resp = new ReservationsResponse(rid);
+            saveIdempotency(rid, req.orderId().toString(), HttpStatus.OK.value(), serializeResponse(resp));
+            return resp;
+        }
+
+        try {
+            ReservationsResponse resp = reserveDomainTransaction(req, rid, idempotencyKey); // @Transactional
+            saveIdempotency(rid, req.orderId().toString(), HttpStatus.OK.value(), serializeResponse(resp)); // REQUIRES_NEW
+            return resp;
+        } catch (InsufficientStockException ex) {
+            saveIdempotency(rid, req.orderId().toString(), HttpStatus.CONFLICT.value(), serializeResponse(Collections.EMPTY_MAP));     // REQUIRES_NEW
+            throw ex;
+        }
+    }
+
+
+    @Transactional
+    public ReservationsResponse reserveDomainTransaction(ReservationsRequest req, UUID rid, String idempotencyKey){
         req.items().forEach(item -> {
             var itemEntity = inventoryItemRepository.findBySku(item.sku()).orElseThrow();
             int available = itemEntity.getInStockQty() - itemEntity.getReservedQty();
@@ -47,8 +79,13 @@ public class InventoryService {
             rows.add(rh);
         }
         reservationHoldRepository.saveAll(rows);
-
         return new ReservationsResponse(rid);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void saveIdempotency(UUID rid, String aggregateId, int httpStatus, String jsonResponse){
+        IdempotencyEntity idempotencyEntity = IdempotencyEntity.create(rid, aggregateId, httpStatus, jsonResponse);
+        idempotencyRepository.save(idempotencyEntity);
     }
 
     @Transactional
@@ -66,5 +103,24 @@ public class InventoryService {
                 });
 
         return new ReservationsResponse(reservationId);
+    }
+
+    private String serializeResponse(Object o) {
+        try {
+            return objectMapper.writeValueAsString(o);
+        } catch (Exception e) {
+            // As a last resort, store a minimal payload
+            return "{\"error\":\"serialization_failed\"}";
+        }
+    }
+
+    private Optional<ReservationsResponse> tryDeserialize(IdempotencyEntity idempotencyEntity) {
+        String json = idempotencyEntity.getJsonResponse();
+        if (json == null || json.isBlank()) return Optional.empty();
+        try {
+            return Optional.of(objectMapper.readValue(json, ReservationsResponse.class));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
     }
 }

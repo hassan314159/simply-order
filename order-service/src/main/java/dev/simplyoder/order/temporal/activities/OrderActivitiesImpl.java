@@ -50,7 +50,7 @@ public class OrderActivitiesImpl implements OrderActivities {
         }
         var req = new Req(orderId, items.stream().map(i -> new Item(i.sku(), i.quantity())).toList());
         var headers = new HttpHeaders();
-        headers.add("Idempotency-Key", sagaId + ":reserve");
+        headers.add("X-Idempotency-Key", sagaId + ":reserve");
         var res = http.exchange(URI.create(inventoryBase + "/inventory/reservations"), HttpMethod.POST, new HttpEntity<>(req, headers), Res.class);
 
         if (res.getStatusCode().value() == 209) {
@@ -67,7 +67,7 @@ public class OrderActivitiesImpl implements OrderActivities {
         }
         var req = new Req(orderId, total);
         var headers = new HttpHeaders();
-        headers.add("Idempotency-Key", sagaId + ":pay");
+        headers.add("X-Idempotency-Key", sagaId + ":pay");
         var res = http.exchange(URI.create(paymentBase + "/payments/authorize"), HttpMethod.POST, new HttpEntity<>(req, headers), Res.class);
         if (res.getStatusCode().isError()) throw new RuntimeException("Payment failed: " + res.getStatusCode());
         UUID authId = Objects.requireNonNull(res.getBody()).authId();
