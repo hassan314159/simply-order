@@ -1,8 +1,16 @@
 spring:
   application:
     name: inventory-service
-app:
-  temporal:
-    address: ${TEMPORAL_ADDRESS:localhost:7233}
-    namespace: default
-    taskQueue: order-task-queue
+  datasource:
+    url: jdbc:postgresql://${DB_ADDRESS:localhost:5434}/inventorydb
+    username: inventory
+    password: inventory
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true   # run data.sql AFTER Hibernate DDL
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  sql:
+    init:
+      mode: always   # run data.sql each startup
