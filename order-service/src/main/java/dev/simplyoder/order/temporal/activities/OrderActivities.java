@@ -1,6 +1,6 @@
 package dev.simplyoder.order.temporal.activities;
 
-import dev.simplyoder.order.model.OrderStatus;
+import dev.simplyoder.order.service.command.OrderStatus;
 import dev.simplyoder.order.temporal.model.OrderPayload;
 import io.temporal.activity.ActivityInterface;
 

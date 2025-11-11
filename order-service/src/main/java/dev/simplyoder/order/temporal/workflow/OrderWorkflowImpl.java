@@ -3,7 +3,7 @@ package dev.simplyoder.order.temporal.workflow;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.simplyoder.order.model.OrderStatus;
+import dev.simplyoder.order.service.command.OrderStatus;
 import dev.simplyoder.order.temporal.activities.OrderActivities;
 import dev.simplyoder.order.temporal.model.OrderPayload;
 import io.temporal.activity.ActivityOptions;

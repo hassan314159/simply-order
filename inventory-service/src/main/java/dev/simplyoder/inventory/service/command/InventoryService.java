@@ -1,11 +1,15 @@
-package dev.simplyoder.inventory.service;
+package dev.simplyoder.inventory.service.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.simplyoder.inventory.controller.dto.ReservationsRequest;
 import dev.simplyoder.inventory.controller.dto.ReservationsResponse;
 import dev.simplyoder.inventory.controller.exception.InsufficientStockException;
 import dev.simplyoder.inventory.controller.utils.ReservationIds;
-import dev.simplyoder.inventory.persistence.*;
+import dev.simplyoder.inventory.persistence.entity.IdempotencyEntity;
+import dev.simplyoder.inventory.persistence.entity.ReservationHoldEntity;
+import dev.simplyoder.inventory.persistence.repository.IdempotencyRepository;
+import dev.simplyoder.inventory.persistence.repository.InventoryItemRepository;
+import dev.simplyoder.inventory.persistence.repository.ReservationHoldRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

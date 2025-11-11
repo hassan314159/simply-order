@@ -1,4 +1,4 @@
-package dev.simplyoder.order.model;
+package dev.simplyoder.order.service.command;
 
 public enum OrderStatus {
     OPEN,

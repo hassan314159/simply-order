@@ -1,4 +1,4 @@
-package dev.simplyoder.order.controller.dto;
+package dev.simplyoder.order.api.dto;
 
 import java.math.BigDecimal;
 import java.util.List;

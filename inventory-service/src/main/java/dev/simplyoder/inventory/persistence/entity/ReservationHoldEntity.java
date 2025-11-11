@@ -1,8 +1,7 @@
-package dev.simplyoder.inventory.persistence;
+package dev.simplyoder.inventory.persistence.entity;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity

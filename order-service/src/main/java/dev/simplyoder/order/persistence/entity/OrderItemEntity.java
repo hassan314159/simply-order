@@ -1,4 +1,4 @@
-package dev.simplyoder.order.persistence;
+package dev.simplyoder.order.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;

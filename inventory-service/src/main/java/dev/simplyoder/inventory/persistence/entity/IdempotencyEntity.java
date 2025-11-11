@@ -1,6 +1,5 @@
-package dev.simplyoder.inventory.persistence;
+package dev.simplyoder.inventory.persistence.entity;
 
-import dev.simplyoder.inventory.controller.utils.ReservationIds;
 import jakarta.persistence.*;
 
 import java.time.Instant;

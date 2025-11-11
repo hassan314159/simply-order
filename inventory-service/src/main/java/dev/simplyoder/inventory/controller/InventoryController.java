@@ -1,6 +1,6 @@
 package dev.simplyoder.inventory.controller;
 
-import dev.simplyoder.inventory.service.InventoryService;
+import dev.simplyoder.inventory.service.command.InventoryService;
 import dev.simplyoder.inventory.controller.dto.ReservationsRequest;
 import dev.simplyoder.inventory.controller.dto.ReservationsResponse;
 import org.springframework.http.ResponseEntity;

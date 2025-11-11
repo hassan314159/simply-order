@@ -1,7 +1,7 @@
 package dev.simplyoder.order.temporal.activities;
 
-import dev.simplyoder.order.model.OrderStatus;
-import dev.simplyoder.order.service.OrderService;
+import dev.simplyoder.order.service.command.OrderStatus;
+import dev.simplyoder.order.service.command.OrderCommandService;
 import dev.simplyoder.order.temporal.model.OrderPayload;
 import io.temporal.failure.ApplicationFailure;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +25,10 @@ public class OrderActivitiesImpl implements OrderActivities {
     private final String inventoryBase = System.getenv().getOrDefault("INVENTORY_BASE", "http://inventory-service:8080");
     private final String paymentBase = System.getenv().getOrDefault("PAYMENT_BASE", "http://payment-service:8080");
     @Autowired
-    private final OrderService orderService;
+    private final OrderCommandService orderCommandService;
 
-    public OrderActivitiesImpl(OrderService orderService, RestTemplateBuilder builder) {
-        this.orderService = orderService;
+    public OrderActivitiesImpl(OrderCommandService orderCommandService, RestTemplateBuilder builder) {
+        this.orderCommandService = orderCommandService;
         this.http = builder
                 .connectTimeout(Duration.ofSeconds(3))
                 .readTimeout(Duration.ofSeconds(5))
@@ -37,7 +37,7 @@ public class OrderActivitiesImpl implements OrderActivities {
 
     @Override
     public void updateOrderStatus(UUID orderId, OrderStatus status) {
-        orderService.updateOrderStatus(orderId, status);
+        orderCommandService.updateOrderStatus(orderId, status);
     }
 
     @Override

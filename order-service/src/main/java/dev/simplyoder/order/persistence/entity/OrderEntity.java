@@ -1,8 +1,8 @@
-package dev.simplyoder.order.persistence;
+package dev.simplyoder.order.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import dev.simplyoder.order.model.CreateOrderCommand;
-import dev.simplyoder.order.model.OrderStatus;
+import dev.simplyoder.order.service.command.CreateOrderCommand;
+import dev.simplyoder.order.service.command.OrderStatus;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;

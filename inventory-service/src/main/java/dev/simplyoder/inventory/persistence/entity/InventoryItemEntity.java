@@ -1,4 +1,4 @@
-package dev.simplyoder.inventory.persistence;
+package dev.simplyoder.inventory.persistence.entity;
 
 
 import jakarta.persistence.*;

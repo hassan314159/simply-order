@@ -1,6 +1,6 @@
-package dev.simplyoder.order.model;
+package dev.simplyoder.order.service.command;
 
-import dev.simplyoder.order.controller.dto.CreateOrderRequest;
+import dev.simplyoder.order.api.dto.CreateOrderRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
