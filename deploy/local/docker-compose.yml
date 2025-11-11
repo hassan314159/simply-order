@@ -83,6 +83,15 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     ports: [ "8083:8080" ]
 
+  api-graphql:
+    build: ../../graphql-api-service
+    environment:
+      - INVENTORY_BASE=http://inventory-service:8080
+      - ORDER_BASE=http://order-service:8080
+      - SPRING_PROFILES_ACTIVE=docker
+      - PORT=8080
+    ports: [ "8085:8080" ]
+
   adminer:
     image: adminer:4
     restart: unless-stopped

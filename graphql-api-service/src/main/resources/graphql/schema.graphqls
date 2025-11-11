@@ -1,0 +1,37 @@
+type Query {
+  order(id: ID!): Order
+  ordersByCustomer(customerId: ID!, limit: Int = 20): [Order!]!
+  product(sku: ID!): InventoryItem
+}
+
+type Order {
+  id: ID!
+  customerId: ID!
+  createdAt: String!
+  status: OrderStatus!
+  items: [OrderItem!]!
+  totalAmount: Float!
+}
+
+enum OrderStatus {
+  NEW
+  PROCESSING
+  SHIPPED
+  CANCELLED
+  FAILED
+  COMPLETED
+}
+
+type OrderItem {
+  sku: ID!
+  quantity: Int!
+  price: Float!
+  inventory: InventoryItem
+}
+
+type InventoryItem {
+  sku: ID!
+  name: String!
+  description: String
+  availableQty: Int!
+}
